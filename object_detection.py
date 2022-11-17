@@ -117,32 +117,31 @@ class VideoStreaming(object):
         self.VIDEO.set(cv2.CAP_PROP_CONTRAST, self._contrast)
 
     def show(self):
-        while(self.VIDEO.isOpened()):
+        while (self.VIDEO.isOpened()):
             ret, snap = self.VIDEO.read()
             if self.flipH:
                 snap = cv2.flip(snap, 1)
-            
-            if ret == True:
-                if self._preview:
-                    # snap = cv2.resize(snap, (0, 0), fx=0.5, fy=0.5)
-                    if self.detect:
-                        snap = self.MODEL.detectObj(snap)
 
-                else:
-                    snap = np.zeros((
-                        int(self.VIDEO.get(cv2.CAP_PROP_FRAME_HEIGHT)),
-                        int(self.VIDEO.get(cv2.CAP_PROP_FRAME_WIDTH))
-                    ), np.uint8)
-                    label = 'camera disabled'
-                    H, W = snap.shape
-                    font = cv2.FONT_HERSHEY_PLAIN
-                    color = (255,255,255)
-                    cv2.putText(snap, label, (W//2 - 100, H//2), font, 2, color, 2)
-                
-                frame = cv2.imencode('.jpg', snap)[1].tobytes()
-                yield (b'--frame\r\n'b'Content-Type: image/jpeg\r\n\r\n' + frame + b'\r\n')
-                time.sleep(0.01)
+            if ret != True:
+                break
+            if self._preview:
+                # snap = cv2.resize(snap, (0, 0), fx=0.5, fy=0.5)
+                if self.detect:
+                    snap = self.MODEL.detectObj(snap)
 
             else:
-                break
+                snap = np.zeros((
+                    int(self.VIDEO.get(cv2.CAP_PROP_FRAME_HEIGHT)),
+                    int(self.VIDEO.get(cv2.CAP_PROP_FRAME_WIDTH))
+                ), np.uint8)
+                label = 'camera disabled'
+                H, W = snap.shape
+                font = cv2.FONT_HERSHEY_PLAIN
+                color = (255,255,255)
+                cv2.putText(snap, label, (W//2 - 100, H//2), font, 2, color, 2)
+
+            frame = cv2.imencode('.jpg', snap)[1].tobytes()
+            yield (b'--frame\r\n'b'Content-Type: image/jpeg\r\n\r\n' + frame + b'\r\n')
+            time.sleep(0.01)
+
         print('off')
